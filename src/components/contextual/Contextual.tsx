@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FetchedResult, fetchResults } from "./fetchResults";
+import { FetchedResult, Model, fetchResults } from "./fetchResults";
 
 export type Option = {
   element: React.ReactNode;
@@ -19,6 +19,7 @@ type ContextualProps<Results extends Record<string, Result>> = {
   results: Results;
   goal: string;
   context: Record<string, string[]>;
+  model?: Model;
   children: ({
     results,
     isLoaded,
@@ -36,6 +37,7 @@ export function Contextual<Results extends Record<string, Result>>({
   goal,
   context,
   children,
+  model = "gpt-4",
 }: ContextualProps<Results>) {
   type ContextualResults = Record<keyof Results, GeneratedResult | undefined>;
 
@@ -54,6 +56,7 @@ export function Contextual<Results extends Record<string, Result>>({
       results: serverResults,
       goal,
       context,
+      model,
     });
     const generated: ContextualResults = {} as ContextualResults;
     for (let key in data) {
