@@ -1,23 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { calendar_v3 } from "googleapis";
 
-export function useEvents(access_token: string, days: number) {
+export function useEvents(
+  access_token: string,
+  daysFuture: number,
+  daysPast: number,
+) {
   const query = useQuery({
-    queryKey: ["events", days],
+    queryKey: ["events", daysFuture, daysPast],
     queryFn: async () => {
       const now = new Date();
-      const nextWeek = new Date(
+      const fromDate = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate() + days,
+        now.getDate() - daysPast,
       );
-      const nowString = now.toISOString();
-      const nextWeekString = nextWeek.toISOString();
+      const toDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + daysFuture,
+      );
       const res = await fetch(
         "https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=" +
-          nowString +
+          fromDate.toISOString() +
           "&timeMax=" +
-          nextWeekString +
+          toDate.toISOString() +
           "&orderBy=startTime&singleEvents=true",
         {
           method: "GET",
@@ -33,9 +40,9 @@ export function useEvents(access_token: string, days: number) {
   });
 
   const eventsByDay: Record<string, calendar_v3.Schema$Event[]> = {};
-  for (let i = 0; i < days; i++) {
+  for (let i = 0; i < daysPast + daysFuture; i++) {
     const day = new Date();
-    day.setDate(day.getDate() + i);
+    day.setDate(day.getDate() - daysPast + i);
     eventsByDay[day.toDateString()] = (query.data || []).filter((e) => {
       if (e.start?.date === day.toISOString().split("T")[0]) {
         return true;
@@ -48,5 +55,5 @@ export function useEvents(access_token: string, days: number) {
     });
   }
 
-  return { query, eventsByDay };
+  return { ...query, eventsByDay };
 }

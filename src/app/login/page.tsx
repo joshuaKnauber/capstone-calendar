@@ -15,11 +15,25 @@ export default function Login() {
   const [loading, setLoading] = useState(true);
 
   const onSignIn = async () => {
+    const scopes = [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/fitness.activity.read",
+      "https://www.googleapis.com/auth/fitness.blood_glucose.read",
+      "https://www.googleapis.com/auth/fitness.blood_pressure.read",
+      "https://www.googleapis.com/auth/fitness.body.read",
+      "https://www.googleapis.com/auth/fitness.body_temperature.read",
+      "https://www.googleapis.com/auth/fitness.heart_rate.read",
+      "https://www.googleapis.com/auth/fitness.location.read",
+      "https://www.googleapis.com/auth/fitness.nutrition.read",
+      "https://www.googleapis.com/auth/fitness.oxygen_saturation.read",
+      "https://www.googleapis.com/auth/fitness.reproductive_health.read",
+      "https://www.googleapis.com/auth/fitness.sleep.read",
+    ];
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${location.origin}/auth/callback`,
-        scopes: "https://www.googleapis.com/auth/calendar",
+        scopes: scopes.join(" "),
       },
     });
     router.refresh();
