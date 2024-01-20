@@ -2,6 +2,7 @@
 
 import { api } from "@/utils/api";
 import OpenAI from "openai";
+import { ChatCompletion } from "openai/resources/index.mjs";
 
 const openai = new OpenAI();
 
@@ -122,7 +123,7 @@ ${formatString}
         ],
       }),
     });
-    const completion = await res.json();
+    const completion = (await res.json()) as ChatCompletion;
     text = completion.choices[0].message.content || "";
   }
   const lines = text.split("\n");
