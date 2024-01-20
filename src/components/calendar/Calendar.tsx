@@ -3,6 +3,7 @@
 import { Session } from "@supabase/supabase-js";
 import { useEvents } from "./hooks/useEvents";
 import { Day } from "./Day";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 export function Calendar({ session }: { session: Session }) {
   const { eventsByDay, data: events } = useEvents(
@@ -10,6 +11,27 @@ export function Calendar({ session }: { session: Session }) {
     14,
     7,
   );
+
+  const [hasScrolled, setHasScrolled] = useState<boolean>(false);
+
+  useLayoutEffect(() => {
+    const el = document.getElementById("today");
+    if (el && !hasScrolled) {
+      console.log(el);
+      el.scrollIntoView({
+        behavior: "instant",
+      });
+    }
+  }, [eventsByDay]);
+
+  useEffect(() => {
+    function onScroll() {
+      setHasScrolled(true);
+    }
+    if (hasScrolled) return;
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [hasScrolled]);
 
   return (
     <div>

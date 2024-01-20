@@ -37,7 +37,10 @@ export function Day({ date, events }: DayProps) {
   });
 
   return (
-    <div className={`flex flex-col ${isPast ? "bg-black" : ""}`}>
+    <div
+      className={`flex flex-col ${isPast ? "bg-black" : ""}`}
+      id={isCurrentDay ? "today" : ""}
+    >
       <span className="bg-emerald-300 px-4 py-6 font-medium text-black">
         {date.toDateString()}
       </span>
