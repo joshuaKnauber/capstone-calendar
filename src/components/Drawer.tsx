@@ -26,7 +26,7 @@ export function CalendarDrawer() {
       setActiveSnapPoint={setSnap}
       modal={false}
       open={true}
-      dismissible={false}
+      // dismissible={false}
     >
       <Drawer.Portal>
         <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex h-full flex-col rounded-t-xl bg-white text-black outline-none">
