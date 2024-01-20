@@ -1,3 +1,4 @@
+import { api } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { fitness_v1 } from "googleapis";
 
@@ -11,7 +12,7 @@ export function useSteps(access_token: string, daysPast: number) {
         now.getMonth(),
         now.getDate() - daysPast,
       );
-      // const ressources = await fetch(
+      // const ressources = await api(
       //   "https://www.googleapis.com/fitness/v1/users/me/dataSources",
       //   {
       //     method: "GET",
@@ -26,7 +27,7 @@ export function useSteps(access_token: string, daysPast: number) {
       //   .map((d: any) => `${d.dataStreamId} - ${d.dataType.name}`);
       // console.log(sources);
       // fetch steps from google fit
-      const res = await fetch(
+      const res = await api(
         "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate",
         {
           method: "POST",

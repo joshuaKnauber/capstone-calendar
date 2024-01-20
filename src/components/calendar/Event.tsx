@@ -34,7 +34,12 @@ export function Event({ event }: EventProps) {
   const isScaled = true;
   const dateStart = new Date(event.start?.date || event.start?.dateTime || "");
   const dateEnd = new Date(event.end?.date || event.end?.dateTime || "");
-  const duration = dateEnd.getTime() - dateStart.getTime();
+  const dateEndOfStartDay = new Date(dateStart);
+  dateEndOfStartDay.setHours(23, 59, 59, 999);
+  const duration = Math.min(
+    dateEnd.getTime() - dateStart.getTime(),
+    dateEndOfStartDay.getTime() - dateStart.getTime(),
+  );
   const height = Math.max(30, duration / 1000 / 60 / 2);
 
   const timeString = `${dateStart
@@ -52,7 +57,7 @@ export function Event({ event }: EventProps) {
     <div
       ref={ref}
       style={{ height: `${height}px` }}
-      className="flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-amber-900 p-2.5"
+      className="flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-violet-600 p-2.5"
     >
       {height < 60 ? (
         <div className="flex min-w-0 flex-row items-center justify-between">

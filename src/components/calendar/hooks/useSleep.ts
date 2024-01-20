@@ -1,3 +1,4 @@
+import { api } from "@/utils/api";
 import { mode } from "@/utils/mode";
 import { useQuery } from "@tanstack/react-query";
 import { fitness_v1 } from "googleapis";
@@ -13,7 +14,7 @@ export function useSleep(access_token: string, daysPast: number) {
         now.getDate() - 20,
       );
       // fetch sleep from google fit
-      const res = await fetch(
+      const res = await api(
         "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate",
         {
           method: "POST",

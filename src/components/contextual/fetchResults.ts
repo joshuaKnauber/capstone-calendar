@@ -1,5 +1,6 @@
 "use server";
 
+import { api } from "@/utils/api";
 import OpenAI from "openai";
 
 const openai = new OpenAI();
@@ -100,7 +101,7 @@ ${formatString}
     });
     text = completion.choices[0].message.content || "";
   } else {
-    const res = await fetch("https://api.together.xyz/v1/chat/completions", {
+    const res = await api("https://api.together.xyz/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

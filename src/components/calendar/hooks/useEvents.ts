@@ -1,3 +1,4 @@
+import { api } from "@/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { calendar_v3 } from "googleapis";
 
@@ -20,7 +21,7 @@ export function useEvents(
         now.getMonth(),
         now.getDate() + daysFuture,
       );
-      const res = await fetch(
+      const res = await api(
         "https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=" +
           fromDate.toISOString() +
           "&timeMax=" +
