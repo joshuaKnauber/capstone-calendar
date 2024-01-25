@@ -1,64 +1,147 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Drawer } from "vaul";
+import { useState } from "react";
+import { Predictive } from "./contextual/Predictive";
+import {
+  useLocation,
+  useNextEvents,
+  useWeather,
+} from "./contextual/hooks/useContextData";
+import { ArrowPathIcon, SparklesIcon } from "@heroicons/react/20/solid";
+import { Dialog, DialogContent } from "./ui/dialog";
+import { useFeedback } from "./contextual/hooks/useFeedback";
+import { LightAction, WeatherAction } from "./contextual/actions";
 
-export function CalendarDrawer() {
+export function CalendarDrawer({ access_token }: { access_token: string }) {
+  const [open, setOpen] = useState<boolean>(false);
+  const [lastReasoning, setLastReasoning] = useState<string>("");
   const [feedback, setFeedback] = useState<string>("");
 
-  const [snap, setSnap] = useState<number | string | null>("110px");
-
-  useEffect(() => {
-    if (snap === "0px") {
-      setSnap("110px");
-    }
-  }, [snap]);
+  const { adress } = useLocation();
+  const { weather } = useWeather();
+  const { currentEvent, nextEvent } = useNextEvents(access_token);
+  const { feedback: feedbackList, addFeedback } = useFeedback("actions");
 
   function onSubmitFeedback(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!feedback) return;
+    addFeedback(feedback, "actions");
     setFeedback("");
   }
 
   return (
-    <Drawer.Root
-      snapPoints={["110px", "300px"]}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
-      modal={false}
-      open={true}
-      // dismissible={false}
-    >
-      <Drawer.Portal>
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex h-full flex-col rounded-t-xl bg-white text-black outline-none">
-          <div className="flex h-[300px] flex-col gap-6 p-4">
-            <div className="mx-auto h-1 w-6 rounded-full bg-neutral-300"></div>
-            <div className="flex flex-row items-center justify-between">
-              <div className="aspect-square h-[50px] rounded-md bg-neutral-300"></div>
-              <div className="aspect-square h-[50px] rounded-md bg-neutral-300"></div>
-              <div className="aspect-square h-[50px] rounded-md bg-neutral-300"></div>
-              <div className="aspect-square h-[50px] rounded-md bg-neutral-300"></div>
-            </div>
-            <form
-              className="flex flex-grow flex-col gap-2"
-              onSubmit={onSubmitFeedback}
+    <>
+      <Dialog open={open} onOpenChange={(o) => setOpen(o)}>
+        <DialogContent className="max-w-[95%]">
+          <span className="text-sm leading-tight">{lastReasoning}</span>
+          <form onSubmit={onSubmitFeedback} className="flex flex-col gap-2">
+            <textarea
+              onChange={(e) => setFeedback(e.target.value)}
+              value={feedback}
+              autoFocus
+              className="h-24 resize-none bg-neutral-100 p-2 text-sm focus:outline-black"
+              placeholder="Provide feedback or new behavior..."
+            />
+            <button
+              className="h-8 bg-black text-sm text-white"
+              disabled={!feedback}
             >
-              <textarea
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                id="feedback"
-                placeholder="Give feedback or ask for new behavior..."
-                className="flex-grow resize-none rounded-md bg-neutral-300 p-3 text-sm focus:outline-none"
-              />
-              <button
-                className="h-8 rounded-md bg-black text-sm font-medium text-white disabled:opacity-50"
-                disabled={!feedback}
-              >
-                Submit
-              </button>
-            </form>
+              Submit
+            </button>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex h-min flex-col border-t border-black bg-white text-black outline-none">
+        <div className="flex flex-col gap-6 p-4">
+          <div className="flex flex-row items-center justify-between">
+            <Predictive
+              model="gpt-4"
+              context={{
+                Context: [
+                  `Current Datetime: ${new Date().toDateString()}, ${new Date().toLocaleTimeString()}`,
+                  `Current Location: ${adress || "-"}`,
+                  `Weather: ${weather?.weather || "-"}`,
+                  `Temperature: ${weather?.temperature || "-"}`,
+                  `Sunrise: ${weather?.sunrise || "-"}`,
+                  `Sunset: ${weather?.sunset || "-"}`,
+                ],
+                "Calender Context": [
+                  `Current event: ${currentEvent || "-"}`,
+                  `Next event: ${nextEvent || "-"}`,
+                ],
+                Notes: ["Do not set reminders for current or upcoming events"],
+                Preferences: feedbackList,
+              }}
+              options={{
+                REMINDER: {
+                  description:
+                    "Shows a text box with the given text. This can only show a few words. Only show this if there is something the user needs to be reminded about",
+                  element: <span>reminder</span>,
+                },
+                COMMUTE: {
+                  description:
+                    "Shows a commute button that starts a navigation to the given location. Only show this if you know there's a commute coming up",
+                  element: <span>commute</span>,
+                },
+                LIGHTS: {
+                  description:
+                    "Shows a button to set the lights to the given state. State can be on, off or toggle. Only show this if there is a good reason to change the lighting",
+                  element: <LightAction />,
+                },
+                DO_NOT_DISTURB: {
+                  description:
+                    "Activates a do-not-disturb mode. Only show this if the event is something where the user needs to focus",
+                  element: <span>do not disturb</span>,
+                },
+                WEATHER: {
+                  description:
+                    "Displays current weather conditions and temperature for the user's location. Only show this if it's relevant for the user to know the weather",
+                  element: <WeatherAction />,
+                },
+              }}
+              results={{
+                "BUTTON 1": { description: "First action button in a row" },
+                "BUTTON 2": { description: "Second action button in a row" },
+                "BUTTON 3": { description: "Third action button in a row" },
+              }}
+            >
+              {({ isLoaded, results, reload, loading }) => (
+                <>
+                  <button
+                    onClick={() => {
+                      if (!loading) reload();
+                    }}
+                    className={`absolute -top-10 right-2 flex items-center justify-center rounded-full bg-white p-1.5 ring-1 ring-inset ring-black`}
+                  >
+                    <ArrowPathIcon
+                      className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                    />
+                  </button>
+                  <div className="flex flex-1 flex-row gap-4">
+                    {Object.entries(results).map(([element, res], i) => (
+                      <div
+                        key={i}
+                        className="relative aspect-square h-[60px] flex-grow bg-neutral-100 p-2 text-sm"
+                      >
+                        {res?.element}
+                        <button
+                          onClick={() => {
+                            setLastReasoning(res?.reasoning || "");
+                            setOpen(true);
+                          }}
+                          className="absolute -right-2 -top-2"
+                        >
+                          <SparklesIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </Predictive>
           </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+        </div>
+      </div>
+    </>
   );
 }

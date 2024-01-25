@@ -17,7 +17,6 @@ export function Calendar({ session }: { session: Session }) {
   useLayoutEffect(() => {
     const el = document.getElementById("today");
     if (el && !hasScrolled) {
-      console.log(el);
       el.scrollIntoView({
         behavior: "instant",
       });
