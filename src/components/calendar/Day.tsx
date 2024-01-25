@@ -46,11 +46,11 @@ Current Information:
 - Time: ${new Date().toTimeString().slice(0, 5)}
 - Location: ${adress || "-"}
 
-Preferences:
-${feedback.map((e) => `- "${e}"`).join("\n") || "-"}
-
 Events Today:
 ${eventContext.map((e) => `- ${e}`).join("\n") || "-"}
+
+Preferences:
+${feedback.map((e) => `- "${e}"`).join("\n") || "-"}
 
 Weather:
 - ${weather?.weather || "-"}
