@@ -18,6 +18,7 @@ export default function Preferences() {
     deleteFeedback,
   } = useFeedback("actions");
   const { feedback: feedbackReminders } = useFeedback("reminders");
+  const { feedback: feedbackFocus } = useFeedback("focus");
 
   function onSubmitFeedback(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,11 +30,13 @@ export default function Preferences() {
   const categories: Record<FeedbackCategory, string[]> = {
     actions: feedbackActions,
     reminders: feedbackReminders,
+    focus: feedbackFocus,
   } as const;
 
   const names: Record<FeedbackCategory, string> = {
-    actions: "Quick Action Feedback",
-    reminders: "Reminder Feedback",
+    actions: "Quick Actions",
+    reminders: "Reminders",
+    focus: "Focus Modes",
   } as const;
 
   return (
@@ -80,6 +83,7 @@ export default function Preferences() {
           >
             <option value="actions">Quick Action Feedback</option>
             <option value="reminders">Reminder Feedback</option>
+            <option value="focus">Focus Mode Feedback</option>
           </select>
           <textarea
             onChange={(e) => setFeedback(e.target.value)}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type FeedbackCategory = "actions" | "reminders";
+export type FeedbackCategory = "actions" | "reminders" | "focus";
 
 export function useFeedback(category: FeedbackCategory) {
   const [feedback, setFeedback] = useState<string[]>([]);

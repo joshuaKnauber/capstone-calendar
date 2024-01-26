@@ -10,7 +10,11 @@ import {
 import { ArrowPathIcon, SparklesIcon } from "@heroicons/react/20/solid";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { useFeedback } from "./contextual/hooks/useFeedback";
-import { LightAction, WeatherAction } from "./contextual/actions";
+import {
+  CommuteAction,
+  LightAction,
+  WeatherAction,
+} from "./contextual/actions";
 
 export function CalendarDrawer({ access_token }: { access_token: string }) {
   const [open, setOpen] = useState<boolean>(false);
@@ -81,7 +85,7 @@ export function CalendarDrawer({ access_token }: { access_token: string }) {
                 COMMUTE: {
                   description:
                     "Shows a commute button that starts a navigation to the given location. Only show this if you know there's a commute coming up",
-                  element: <span>commute</span>,
+                  element: <CommuteAction />,
                 },
                 LIGHTS: {
                   description:

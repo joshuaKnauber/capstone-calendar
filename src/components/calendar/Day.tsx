@@ -182,44 +182,9 @@ export function Day({ date, events }: DayProps) {
         <div className="flex h-1.5 flex-col justify-center bg-black px-8"></div>
         <div className="flex h-1 flex-col justify-center bg-black px-8"></div>
       </div>
-      <div className="relative flex flex-grow flex-col gap-1 px-2">
+      <div className="flex flex-grow flex-col gap-1 px-2">
         {sortedEvents.map((event, i) => {
-          const start = new Date(
-            event.start?.dateTime || event.start?.date || 0,
-          );
-          const end = new Date(event.end?.dateTime || event.end?.date || 0);
-          const duration = end.getTime() - start.getTime();
-          const isReminder = event.id?.startsWith("REMINDER");
-          return (
-            <div
-              key={event.id}
-              className={`event z-10 flex flex-col overflow-hidden p-2 ring-1 ring-inset ring-black`}
-              style={{ paddingBottom: duration / 1000 / 100 }}
-            >
-              <span
-                title={event.summary || ""}
-                className={`overflow-hidden text-sm font-medium leading-tight`}
-              >
-                {isReminder && (
-                  <SparklesIcon className="mr-1 inline-block w-3" />
-                )}
-                {event.summary}
-              </span>
-              {!isReminder && (
-                <>
-                  <span className="mt-1 text-sm leading-tight opacity-75">
-                    {format(start, "kk:mm")} - {format(end, "kk:mm")}
-                  </span>
-                  {event.location && (
-                    <span className="text-sm leading-tight opacity-75">
-                      <MapPinIcon className="-mt-1 mr-1 inline-block w-3" />
-                      {event.location}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-          );
+          return <Event event={event} key={i} />;
         })}
       </div>
     </div>

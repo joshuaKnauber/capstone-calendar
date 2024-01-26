@@ -1,91 +1,55 @@
 "use client";
 
+import { MapPinIcon, SparklesIcon } from "@heroicons/react/20/solid";
+import { format } from "date-fns";
 import { calendar_v3 } from "googleapis";
 import { useEffect, useRef, useState } from "react";
+import { Focus } from "./Focus";
 
 type EventProps = {
   event: calendar_v3.Schema$Event;
 };
 
 export function Event({ event }: EventProps) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const [yPercentage, setYPercentage] = useState<number>(0);
-
-  const updateYPercentage = () => {
-    if (!ref.current) return;
-    const { top } = ref.current.getBoundingClientRect();
-    const percentage = (top / window.innerHeight) * 100;
-    setYPercentage(percentage);
-  };
-
-  useEffect(() => {
-    updateYPercentage();
-    window.addEventListener("resize", updateYPercentage);
-    window.addEventListener("scroll", updateYPercentage);
-
-    return () => {
-      window.removeEventListener("resize", updateYPercentage);
-      window.removeEventListener("scroll", updateYPercentage);
-    };
-  }, []);
-
-  // const isScaled = yPercentage > 20 && yPercentage < 80;
-  const isScaled = true;
-  const dateStart = new Date(event.start?.date || event.start?.dateTime || "");
-  const dateEnd = new Date(event.end?.date || event.end?.dateTime || "");
-  const dateEndOfStartDay = new Date(dateStart);
-  dateEndOfStartDay.setHours(23, 59, 59, 999);
-  const duration = Math.min(
-    dateEnd.getTime() - dateStart.getTime(),
-    dateEndOfStartDay.getTime() - dateStart.getTime(),
-  );
-  const height = Math.max(30, duration / 1000 / 60 / 2);
-
-  const timeString = `${dateStart
-    .getHours()
-    .toString()
-    .padStart(2, "0")}:${dateStart
-    .getMinutes()
-    .toString()
-    .padStart(2, "0")} - ${dateEnd
-    .getHours()
-    .toString()
-    .padStart(2, "0")}:${dateEnd.getMinutes().toString().padStart(2, "0")}`;
+  const start = new Date(event.start?.dateTime || event.start?.date || 0);
+  const end = new Date(event.end?.dateTime || event.end?.date || 0);
+  const duration = end.getTime() - start.getTime();
+  const isReminder = event.id?.startsWith("REMINDER");
+  const isToday = new Date().toDateString() === start.toDateString();
 
   return (
-    <div
-      ref={ref}
-      style={{ height: `${height}px` }}
-      className="flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-violet-600 p-2.5"
-    >
-      {height < 60 ? (
-        <div className="flex min-w-0 flex-row items-center justify-between">
-          <span className="mr-2 overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium leading-none">
-            {event.summary}
-          </span>
-          <span className="whitespace-nowrap text-xs font-light leading-none opacity-50">
-            {timeString}
-          </span>
+    <div className="flex flex-row gap-1">
+      {!isReminder && isToday && (
+        <div className="w-6 shrink-0">
+          <Focus event={event} />
         </div>
-      ) : (
-        <>
-          <span className="text-xs font-medium leading-none">
-            {event.summary}
-          </span>
-          <span className="text-xs font-light leading-none opacity-50">
-            {timeString}
-          </span>
-        </>
       )}
-      {/* <div
-        className={`grid transition-all ${
-          isScaled ? "grid-rows-[1fr] pt-1" : "grid-rows-[0fr] pt-0"
-        }`}
+      <div
+        key={event.id}
+        className={`event z-10 flex flex-grow flex-col overflow-hidden p-2 ring-1 ring-inset ring-black`}
+        style={{ paddingBottom: duration / 1000 / 100 }}
       >
-        <div className="overflow-hidden">
-        </div>
-      </div> */}
+        <span
+          title={event.summary || ""}
+          className={`overflow-hidden text-sm font-medium leading-tight`}
+        >
+          {isReminder && <SparklesIcon className="mr-1 inline-block w-3" />}
+          {event.summary}
+        </span>
+        {!isReminder && (
+          <>
+            <span className="mt-1 text-sm leading-tight opacity-75">
+              {format(start, "kk:mm")} - {format(end, "kk:mm")}
+            </span>
+            {event.location && (
+              <span className="text-sm leading-tight opacity-75">
+                <MapPinIcon className="-mt-1 mr-1 inline-block w-3" />
+                {event.location}
+              </span>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
