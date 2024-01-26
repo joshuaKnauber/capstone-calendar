@@ -173,7 +173,7 @@ export function Day({ date, events }: DayProps) {
       >
         {isCurrentDay && (
           <div
-            className="absolute left-0 right-0 h-0.5 bg-black"
+            className="absolute left-0 right-0 z-20 h-0.5 bg-black"
             style={{
               top: `${Math.round(dayPercentage)}%`,
             }}
