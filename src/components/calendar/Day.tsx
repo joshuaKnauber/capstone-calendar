@@ -4,7 +4,11 @@ import { calendar_v3 } from "googleapis";
 import { Event } from "./Event";
 import { dayAbbreviations } from "@/utils/constants";
 import { getDrawEvents } from "@/utils/getDrawEvents";
-import { ArrowPathIcon, SparklesIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowPathIcon,
+  MapPinIcon,
+  SparklesIcon,
+} from "@heroicons/react/20/solid";
 import {
   eventToString,
   useLocation,
@@ -13,7 +17,8 @@ import {
 import { usePrediction } from "../contextual/hooks/usePrediction";
 import { useMemo, useState } from "react";
 import { useFeedback } from "../contextual/hooks/useFeedback";
-import { SparkleIcon } from "lucide-react";
+import { MapPin, SparkleIcon } from "lucide-react";
+import { format } from "date-fns";
 
 type DayProps = {
   date: Date;
@@ -149,6 +154,19 @@ export function Day({ date, events }: DayProps) {
     ySegmentSize,
   });
 
+  const sortedEvents = [...events, ...reminderEvents].sort((a, b) => {
+    // sort be start time, then by end time
+    const aStart = new Date(a.start?.dateTime || a.start?.date || 0);
+    const bStart = new Date(b.start?.dateTime || b.start?.date || 0);
+    const aEnd = new Date(a.end?.dateTime || a.end?.date || 0);
+    const bEnd = new Date(b.end?.dateTime || b.end?.date || 0);
+    if (aStart.getTime() < bStart.getTime()) return -1;
+    if (aStart.getTime() > bStart.getTime()) return 1;
+    if (aEnd.getTime() < bEnd.getTime()) return -1;
+    if (aEnd.getTime() > bEnd.getTime()) return 1;
+    return 0;
+  });
+
   return (
     <div className={`flex flex-col`} id={isCurrentDay ? "today" : ""}>
       <div className="mb-2 mt-4 flex flex-col gap-0.5">
@@ -164,75 +182,45 @@ export function Day({ date, events }: DayProps) {
         <div className="flex h-1.5 flex-col justify-center bg-black px-8"></div>
         <div className="flex h-1 flex-col justify-center bg-black px-8"></div>
       </div>
-      <div
-        className="relative grid flex-grow gap-1 pr-1"
-        style={{
-          gridTemplateRows: `repeat(${amountYSegments}, auto)`,
-          gridTemplateColumns: `40px repeat(${amountXSegments}, 1fr)`,
-        }}
-      >
-        {isCurrentDay && (
-          <div
-            className="absolute left-0 right-0 z-20 h-0.5 bg-black"
-            style={{
-              top: `${Math.round(dayPercentage)}%`,
-            }}
-          >
-            <div className="absolute -top-[0.475rem] left-0 h-4 w-1 bg-black"></div>
-          </div>
-        )}
-        {Array.from({ length: 24 }).map((_, i) => {
-          const rowStart = (i * 60) / ySegmentSize + 1;
-          const rowEnd = rowStart + 60 / ySegmentSize;
-          const segmentAmount = 60 / ySegmentSize;
-          const hasEvents = calendarItems.some(({ event }) => {
-            const startDate = new Date(
-              event.start?.dateTime || event.start?.date || 0,
-            );
-            const endDate = new Date(
-              event.end?.dateTime || event.end?.date || 0,
-            );
-            return startDate.getHours() <= i && endDate.getHours() > i;
-          });
+      <div className="relative flex flex-grow flex-col gap-1 px-2">
+        {sortedEvents.map((event, i) => {
+          const start = new Date(
+            event.start?.dateTime || event.start?.date || 0,
+          );
+          const end = new Date(event.end?.dateTime || event.end?.date || 0);
+          const duration = end.getTime() - start.getTime();
+          const isReminder = event.id?.startsWith("REMINDER");
           return (
             <div
-              key={i}
-              className={`z-10 flex items-center justify-center`}
-              style={{
-                gridRow: `${rowStart} / ${rowEnd}`,
-                height: hasEvents ? segmentAmount * 10 : 10,
-              }}
+              key={event.id}
+              className={`event z-10 flex flex-col overflow-hidden p-2 ring-1 ring-inset ring-black`}
+              style={{ paddingBottom: duration / 1000 / 100 }}
             >
-              <span className="text-start font-mono text-sm font-semibold leading-none">
-                {i.toString().padStart(2, "0")}
+              <span
+                title={event.summary || ""}
+                className={`overflow-hidden text-sm font-medium leading-tight`}
+              >
+                {isReminder && (
+                  <SparklesIcon className="mr-1 inline-block w-3" />
+                )}
+                {event.summary}
               </span>
+              {!isReminder && (
+                <>
+                  <span className="mt-1 text-sm leading-tight opacity-75">
+                    {format(start, "kk:mm")} - {format(end, "kk:mm")}
+                  </span>
+                  {event.location && (
+                    <span className="text-sm leading-tight opacity-75">
+                      <MapPinIcon className="-mt-1 mr-1 inline-block w-3" />
+                      {event.location}
+                    </span>
+                  )}
+                </>
+              )}
             </div>
           );
         })}
-        {calendarItems.map(({ event, gridArea, ySegments }, i) => (
-          <div
-            key={event.id}
-            className={`event z-10 flex overflow-hidden p-2 ring-1 ring-inset ring-black ${
-              ySegments === 1 ? "items-center" : "items-start"
-            }`}
-            style={{ gridArea: gridArea, minHeight: ySegments * 10 }}
-          >
-            <span
-              title={event.summary || ""}
-              className={`overflow-hidden text-sm leading-none`}
-              style={{
-                WebkitLineClamp: ySegments / ySegmentSize,
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-              }}
-            >
-              {event.id?.startsWith("REMINDER") && (
-                <SparklesIcon className="mr-1 inline-block w-3" />
-              )}
-              {event.summary}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
   );
