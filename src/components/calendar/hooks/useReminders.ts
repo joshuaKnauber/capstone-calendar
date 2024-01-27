@@ -23,7 +23,7 @@ export function useReminders({
 
   const eventContext = events.map((e) => eventToString(e));
 
-  const key = `reminder:${new Date().toDateString()}:${new Date().getHours()}:${Math.round(
+  const key = `reminder:${date.toDateString()}:${new Date().getHours()}:${Math.round(
     new Date().getMinutes() / 10,
   )}`;
 
@@ -34,27 +34,28 @@ export function useReminders({
     active: load && contextReady,
     storageKey: key,
     systemPrompt: `
-  You are picking reminders for the user. You will receive context information including the upcoming calendar events. Do not remind the user of upcoming events, consider useful, non-obvious tips they will need over the day.
+You are picking reminders for the user. You will receive context information including the upcoming calendar events. Do not remind the user of upcoming events, consider useful, non-obvious tips they will need over the day.
+Make sure to not tell the user obvious information. A useful example would be "Don't forget to bring an umbrella, it will rain today.", a bad example would be "You have a meeting at 2pm today." or "It will get dark soon".
   `.trim(),
     userPrompt: `
-  Current Information:
-  - Date: ${new Date().toLocaleDateString()}
-  - Time: ${new Date().toTimeString().slice(0, 5)}
-  - Location: ${adress || "-"}
-  
-  Events Today:
-  ${eventContext.map((e) => `- ${e}`).join("\n") || "-"}
-  
-  Preferences:
-  ${feedback.map((e) => `- "${e}"`).join("\n") || "-"}
-  
-  Weather:
-  - ${weather?.weather || "-"}
-  - Sunrise at ${weather?.sunrise || "-"}
-  - Sunset at ${weather?.sunset || "-"}
-  
-  Answer in the following format and only in this format. You can have multiple reminders on individual lines, you can also have no reminders.
-  HH:MM Title of the reminder
+Current Information:
+- Date: ${new Date().toLocaleDateString()}
+- Time: ${new Date().toTimeString().slice(0, 5)}
+- Location: ${adress || "-"}
+
+Events Today:
+${eventContext.map((e) => `- ${e}`).join("\n") || "-"}
+
+Preferences:
+${feedback.map((e) => `- "${e}"`).join("\n") || "-"}
+
+Weather:
+- ${weather?.weather || "-"}
+- Sunrise at ${weather?.sunrise || "-"}
+- Sunset at ${weather?.sunset || "-"}
+
+Answer in the following format and only in this format. You can have multiple reminders on individual lines, you can also have no reminders.
+HH:MM Title of the reminder
   `.trim(),
   });
 
