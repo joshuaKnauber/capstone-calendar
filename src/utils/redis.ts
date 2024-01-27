@@ -9,7 +9,11 @@ const redis = new Redis({
 
 export async function redisGet(key: string) {
   const res = await redis.get(key);
-  return typeof res === "string" ? res : null;
+  return typeof res === "string"
+    ? res
+    : res !== null && res !== undefined
+      ? JSON.stringify(res)
+      : null;
 }
 
 export async function redisSet(key: string, value: string) {

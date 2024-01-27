@@ -33,6 +33,13 @@ export function CalendarDrawer({ access_token }: { access_token: string }) {
     setFeedback("");
   }
 
+  const storageKey = `actions:${new Date().toDateString()}:${new Date().getHours()}:${Math.round(
+    new Date().getMinutes() / 10,
+  )}`;
+  const contextReady = ![adress, weather, currentEvent, nextEvent].includes(
+    null,
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => setOpen(o)}>
@@ -60,6 +67,8 @@ export function CalendarDrawer({ access_token }: { access_token: string }) {
           <div className="flex flex-row items-center justify-between">
             <Predictive
               model="gpt-4"
+              storageKey={storageKey}
+              contextReady={contextReady}
               context={{
                 Context: [
                   `Current Datetime: ${new Date().toDateString()}, ${new Date().toLocaleTimeString()}`,

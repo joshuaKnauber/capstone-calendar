@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Model, fetchResults } from "./fetchResults";
+import { useQuery } from "@tanstack/react-query";
 
 export type Option = {
   element: React.ReactNode;
@@ -16,6 +17,8 @@ type UsePredictiveProps<Results extends Record<string, Result>> = {
   options: Record<string, Option>;
   results: Results;
   context: Record<string, string[]>;
+  active: boolean;
+  storageKey?: string;
   model?: Model;
 };
 
@@ -23,49 +26,56 @@ export function usePredictive<Results extends Record<string, Result>>({
   context,
   options,
   results,
+  storageKey,
+  active,
   model = "gpt-4",
 }: UsePredictiveProps<Results>) {
   type PredictedResults = Record<keyof Results, GeneratedResult | undefined>;
 
-  const [generatedResults, setGeneratedResults] =
-    useState<PredictedResults | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const reloadResults = async () => {
-    if (loading) return;
-    setLoading(true);
-    const serverOptions = Object.fromEntries(
-      Object.entries(options).map(([key, value]) => [key, value.description]),
-    );
-    const serverResults = Object.fromEntries(
-      Object.entries(results).map(([key, value]) => [key, value.description]),
-    );
-    const data = await fetchResults({
-      options: serverOptions,
-      results: serverResults,
-      context,
-      model,
-    });
-    const generated: PredictedResults = {} as PredictedResults;
-    for (let key in data) {
-      const result = data[key as keyof typeof data];
-      const option = options[result?.identifier as keyof typeof options];
-      if (result && option) {
-        generated[key as keyof Results] = {
-          reasoning: result.reasoning,
-          element: option.element,
-        };
+  const {
+    data: generatedResults,
+    refetch,
+    isLoading,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["predictive", storageKey],
+    enabled: active,
+    queryFn: async () => {
+      const serverOptions = Object.fromEntries(
+        Object.entries(options).map(([key, value]) => [key, value.description]),
+      );
+      const serverResults = Object.fromEntries(
+        Object.entries(results).map(([key, value]) => [key, value.description]),
+      );
+      const data = await fetchResults({
+        options: serverOptions,
+        results: serverResults,
+        context,
+        model,
+        storageKey,
+      });
+      const generated: PredictedResults = {} as PredictedResults;
+      for (let key in data) {
+        const result = data[key as keyof typeof data];
+        const option = options[result?.identifier as keyof typeof options];
+        if (result && option) {
+          generated[key as keyof Results] = {
+            reasoning: result.reasoning,
+            element: option.element,
+          };
+        }
       }
-    }
-    setGeneratedResults(generated);
-    setLoading(false);
-  };
+      return generated;
+    },
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  });
 
   return {
     results: generatedResults || ({} as PredictedResults),
     isLoaded: generatedResults !== null,
-    reload: reloadResults,
-    loading,
+    reload: refetch,
+    loading: isLoading || isRefetching,
   };
 }
 
@@ -75,6 +85,8 @@ type PredictiveProps<Results extends Record<string, Result>> = {
   options: Record<string, Option>;
   results: Results;
   context: Record<string, string[]>;
+  contextReady: boolean;
+  storageKey?: string;
   model?: Model;
   children: ({
     results,
@@ -84,7 +96,7 @@ type PredictiveProps<Results extends Record<string, Result>> = {
   }: {
     results: Record<keyof Results, GeneratedResult | undefined>;
     isLoaded: boolean;
-    reload: () => Promise<void>;
+    reload: () => void;
     loading: boolean;
   }) => React.ReactNode;
 };
@@ -94,6 +106,8 @@ export function Predictive<Results extends Record<string, Result>>({
   results,
   context,
   children,
+  storageKey,
+  contextReady,
   model = "gpt-4",
 }: PredictiveProps<Results>) {
   const {
@@ -103,7 +117,9 @@ export function Predictive<Results extends Record<string, Result>>({
     results: generatedResults,
   } = usePredictive({
     options,
+    storageKey,
     results,
+    active: contextReady,
     context,
     model,
   });

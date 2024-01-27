@@ -4,11 +4,7 @@ import { calendar_v3 } from "googleapis";
 import { Event } from "./Event";
 import { dayAbbreviations } from "@/utils/constants";
 import { getDrawEvents } from "@/utils/getDrawEvents";
-import {
-  ArrowPathIcon,
-  MapPinIcon,
-  SparklesIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import {
   eventToString,
   useLocation,
@@ -17,8 +13,6 @@ import {
 import { usePrediction } from "../contextual/hooks/usePrediction";
 import { useMemo, useState } from "react";
 import { useFeedback } from "../contextual/hooks/useFeedback";
-import { MapPin, SparkleIcon } from "lucide-react";
-import { format } from "date-fns";
 
 type DayProps = {
   date: Date;
@@ -28,20 +22,26 @@ type DayProps = {
 function useReminders({
   date,
   events,
+  load,
 }: {
   date: Date;
   events: calendar_v3.Schema$Event[];
+  load: boolean;
 }) {
-  const [initialLoad, setInitialLoad] = useState<boolean>(false);
-
   const { adress } = useLocation();
   const { weather } = useWeather();
   const { feedback } = useFeedback("reminders");
 
   const eventContext = events.map((e) => eventToString(e));
-  const { data, refetch, isLoading, isRefetching } = usePrediction({
+
+  const key = `reminder:${new Date().toDateString()}:${new Date().getHours()}:${Math.round(
+    new Date().getMinutes() / 10,
+  )}`;
+
+  const { data, isLoading, isRefetching } = usePrediction({
     id: date.toDateString(),
-    active: initialLoad,
+    active: load,
+    storageKey: key,
     systemPrompt: `
 You are picking reminders for the user. You will receive context information including the upcoming calendar events. Do not remind the user of upcoming events, consider useful, non-obvious tips they will need over the day.
 `.trim(),
@@ -88,7 +88,7 @@ HH:MM Title of the reminder
   const reminderEvents = useMemo(() => {
     const events: calendar_v3.Schema$Event[] = reminders.map((r, i) => ({
       summary: r.text,
-      id: `REMINDER:${r.hour}-${r.minute}${r.text}${i}`,
+      id: `${i}REMINDER:${r.text}`,
       start: {
         dateTime: new Date(
           date.getFullYear(),
@@ -111,48 +111,27 @@ HH:MM Title of the reminder
     return events;
   }, [reminders]);
 
-  function reload() {
-    if (initialLoad) {
-      setInitialLoad(true);
-    }
-    refetch();
-  }
-
   return {
     reminders,
     reminderEvents,
-    reload,
     isLoading: isLoading || isRefetching,
   };
 }
 
 export function Day({ date, events }: DayProps) {
-  const day = dayAbbreviations[date.getDay()];
   const nextWeek = new Date(date);
   nextWeek.setDate(nextWeek.getDate() + 6);
 
-  const { reminderEvents, reload, isLoading } = useReminders({ date, events });
-
-  const now = new Date();
   const startOfDay = new Date(date);
   startOfDay.setHours(0, 0, 0, 0);
-  const dayPercentage =
-    ((now.getTime() - startOfDay.getTime()) / 24 / 60 / 60 / 1000) * 100;
   const isCurrentDay = date.toDateString() === new Date().toDateString();
-  const isPast = date < new Date() && !isCurrentDay;
 
-  const total = 24 * 60;
-  const ySegmentSize = 10; // 10 minutes
-  const amountYSegments = total / ySegmentSize;
+  const [load, setLoad] = useState<boolean>(isCurrentDay);
+  const { reminderEvents, isLoading } = useReminders({ date, events, load });
 
-  const amountXSegments = 12;
-
-  let calendarItems = getDrawEvents({
-    events: [...events, ...reminderEvents],
-    amountXSegments,
-    amountYSegments,
-    ySegmentSize,
-  });
+  function reload() {
+    setLoad(true);
+  }
 
   const sortedEvents = [...events, ...reminderEvents].sort((a, b) => {
     // sort be start time, then by end time
@@ -169,22 +148,22 @@ export function Day({ date, events }: DayProps) {
 
   return (
     <div className={`flex flex-col`} id={isCurrentDay ? "today" : ""}>
-      <div className="mb-2 mt-4 flex flex-col gap-0.5">
-        <div className="flex h-16 flex-row items-center justify-between bg-black px-8">
-          <span className="font-bold text-white">{date.toDateString()}</span>
+      <div className="mb-2 mt-2 flex flex-col gap-0.5">
+        <div className="flex h-14 flex-row items-center justify-between bg-black px-4">
+          <span className="font-semibold text-white">
+            {date.toDateString()}
+          </span>
           <button onClick={reload} className="rounded-full p-1 text-white">
             <ArrowPathIcon
               className={`w-4 ${isLoading ? "animate-spin" : ""}`}
             />
           </button>
         </div>
-        <div className="flex h-2 flex-col justify-center bg-black px-8"></div>
-        <div className="flex h-1.5 flex-col justify-center bg-black px-8"></div>
         <div className="flex h-1 flex-col justify-center bg-black px-8"></div>
       </div>
       <div className="flex flex-grow flex-col gap-1 px-2">
         {sortedEvents.map((event, i) => {
-          return <Event event={event} key={i} />;
+          return <Event event={event} load={load} key={i} />;
         })}
       </div>
     </div>

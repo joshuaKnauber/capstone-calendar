@@ -1,6 +1,8 @@
 "use server";
 
 import { api } from "@/utils/api";
+import { redisGet, redisSet } from "@/utils/redis";
+import { sha256 } from "js-sha256";
 import OpenAI from "openai";
 import { ChatCompletion } from "openai/resources/index.mjs";
 
@@ -25,12 +27,22 @@ export async function fetchResults({
   results,
   context,
   model,
+  storageKey,
 }: {
   options: Record<string, string>;
   results: Record<string, string>;
   context: Record<string, string[]>;
   model: Model;
+  storageKey?: string;
 }) {
+  if (storageKey) {
+    const cached = await redisGet(sha256(storageKey));
+    if (typeof cached === "string") {
+      return JSON.parse(cached) as Record<string, FetchedResult>;
+    }
+  }
+  console.log("fetched new prediction for actions");
+
   const contextString = Object.entries(context)
     .map(
       ([key, value]) =>
@@ -39,7 +51,6 @@ export async function fetchResults({
         }`,
     )
     .join("\n\n");
-  console.log(contextString);
 
   const optionDescriptions = Object.entries(options)
     .map(([key, value]) => `[${key}] -> ${value}`)
@@ -150,8 +161,10 @@ ${formatString}
     },
     {} as Record<string, FetchedResult>,
   );
-  console.log(text);
-  console.log(fetchedResults);
+
+  if (storageKey) {
+    await redisSet(sha256(storageKey), JSON.stringify(fetchedResults));
+  }
 
   return fetchedResults;
 }

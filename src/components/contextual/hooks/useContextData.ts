@@ -3,48 +3,56 @@ import { getLocation } from "./getLocation";
 import { WeatherInfo, getWeather } from "./getWeather";
 import { useEvents } from "@/components/calendar/hooks/useEvents";
 import { calendar_v3 } from "googleapis";
+import { useQuery } from "@tanstack/react-query";
 
 export function useLocation() {
-  const [coordinates, setCoordinates] = useState<GeolocationCoordinates | null>(
-    null,
-  );
-  const [adress, setAdress] = useState<string | null>(null);
-
-  const updateAdress = async (coords: GeolocationCoordinates) => {
-    const newAdress = await getLocation(coords.latitude, coords.longitude);
-    setAdress(newAdress);
-  };
-
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      setCoordinates(position.coords);
-      updateAdress(position.coords);
-    });
-  }, []);
+  const { data } = useQuery({
+    queryKey: ["location"],
+    queryFn: async () => {
+      const coordinates = await new Promise<GeolocationCoordinates>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => resolve(position.coords),
+            (error) => reject(error),
+          );
+        },
+      );
+      if (coordinates) {
+        const adress = await getLocation(
+          coordinates.latitude,
+          coordinates.longitude,
+        );
+        return { coordinates, adress };
+      }
+      return { coordinates: null, adress: null };
+    },
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  });
 
   return {
-    coordinates,
-    adress,
+    coordinates: data?.coordinates || null,
+    adress: data?.adress || null,
   };
 }
 
 export function useWeather() {
   const { coordinates } = useLocation();
-  const [weather, setWeather] = useState<WeatherInfo | null>(null);
 
-  const updateWeather = async (coords: GeolocationCoordinates) => {
-    const newWeather = await getWeather(coords.latitude, coords.longitude);
-    setWeather(newWeather);
-  };
-
-  useEffect(() => {
-    if (coordinates) {
-      updateWeather(coordinates);
-    }
-  }, [coordinates]);
+  const { data } = useQuery({
+    queryKey: ["weather", coordinates?.latitude, coordinates?.longitude],
+    queryFn: async () => {
+      if (coordinates) {
+        return await getWeather(coordinates.latitude, coordinates.longitude);
+      }
+      return null;
+    },
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  });
 
   return {
-    weather,
+    weather: data || null,
   };
 }
 

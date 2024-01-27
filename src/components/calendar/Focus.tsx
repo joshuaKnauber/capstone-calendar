@@ -126,7 +126,6 @@ export function Focus({ event }: { event: calendar_v3.Schema$Event }) {
           onClick={() => {
             setLastReasoning(focusMode?.reasoning || "");
             setOpen(true);
-            console.log(focusMode?.reasoning);
           }}
           className="z-10"
         >

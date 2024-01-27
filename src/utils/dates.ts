@@ -11,7 +11,6 @@ export function dateRangesOverlapping(
   );
 
   if (date1[0].getDate() === 25) {
-    console.log(date1, date2);
   }
   return (
     // first event inside second event
