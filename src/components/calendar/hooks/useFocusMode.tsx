@@ -61,7 +61,7 @@ export function useFocusMode(event: calendar_v3.Schema$Event) {
   });
 
   const focusMode = useMemo(() => {
-    const lines = (data || "").split("\n");
+    const lines = (data || "").split("\n").filter((l) => l.trim());
     if (lines.length === 2) {
       const reasoning = lines[0].trim();
       const mode = lines[1].split(":")[1].trim();
