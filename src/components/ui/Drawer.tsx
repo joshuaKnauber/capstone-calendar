@@ -89,7 +89,7 @@ export function CalendarDrawer({ access_token }: { access_token: string }) {
                 REMINDER: {
                   description:
                     "Shows a text box with the given text. This can only show a few words. Only show this if there is something the user needs to be reminded about",
-                  element: <span>reminder</span>,
+                  element: <span>Reminder</span>,
                 },
                 COMMUTE: {
                   description:
@@ -104,12 +104,32 @@ export function CalendarDrawer({ access_token }: { access_token: string }) {
                 DO_NOT_DISTURB: {
                   description:
                     "Activates a do-not-disturb mode. Only show this if the event is something where the user needs to focus",
-                  element: <span>do not disturb</span>,
+                  element: <span>Do Not Disturb</span>,
                 },
                 WEATHER: {
                   description:
                     "Displays current weather conditions and temperature for the user's location. Only show this if it's relevant for the user to know the weather",
                   element: <WeatherAction />,
+                },
+                NEARBY_RESTAURANTS: {
+                  description:
+                    "Shows a list of nearby restaurants. Only show this if the user is likely to be hungry and they are not at home",
+                  element: <span>Nearby Restaurants</span>,
+                },
+                NEARBY_PLACES: {
+                  description:
+                    "Shows a list of interesting places nearby. Only show this if the user is in a new place and is likely to be interested in exploring it",
+                  element: <span>Nearby Places</span>,
+                },
+                NEWS: {
+                  description:
+                    "Shows a button to get the latest news. Only show this if the user is in a situation where they are likely to be interested in the news",
+                  element: <span>News</span>,
+                },
+                MUSIC: {
+                  description:
+                    "Start playing music. Only show this if the user is in a situation where they are likely to want to listen to music",
+                  element: <span>Music</span>,
                 },
               }}
               results={{
