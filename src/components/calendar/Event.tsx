@@ -3,7 +3,7 @@
 import { MapPinIcon, SparklesIcon } from "@heroicons/react/20/solid";
 import { format } from "date-fns";
 import { calendar_v3 } from "googleapis";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Focus } from "./Focus";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { useFeedback } from "../contextual/hooks/useFeedback";

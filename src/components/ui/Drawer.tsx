@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Predictive } from "./contextual/Predictive";
+import { Predictive } from "../contextual/Predictive";
 import {
   useLocation,
   useNextEvents,
   useWeather,
-} from "./contextual/hooks/useContextData";
+} from "../contextual/hooks/useContextData";
 import { ArrowPathIcon, SparklesIcon } from "@heroicons/react/20/solid";
-import { Dialog, DialogContent } from "./ui/dialog";
-import { useFeedback } from "./contextual/hooks/useFeedback";
+import { Dialog, DialogContent } from "./dialog";
+import { useFeedback } from "../contextual/hooks/useFeedback";
 import {
   CommuteAction,
   LightAction,
   WeatherAction,
-} from "./contextual/actions";
+} from "../contextual/actions";
 
 export function CalendarDrawer({ access_token }: { access_token: string }) {
   const [open, setOpen] = useState<boolean>(false);

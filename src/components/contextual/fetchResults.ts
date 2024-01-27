@@ -1,7 +1,7 @@
 "use server";
 
-import { api } from "@/utils/api";
-import { redisGet, redisSet } from "@/utils/redis";
+import { api } from "@/lib/utils/api";
+import { redisGet, redisSet } from "@/lib/utils/redis";
 import { sha256 } from "js-sha256";
 import OpenAI from "openai";
 import { ChatCompletion } from "openai/resources/index.mjs";

@@ -1,6 +1,6 @@
-import { CalendarDrawer } from "@/components/Drawer";
+import { CalendarDrawer } from "@/components/ui/Drawer";
 import { Calendar } from "@/components/calendar/Calendar";
-import { protectedServerRoute } from "@/utils/protectedServerRoute";
+import { protectedServerRoute } from "@/lib/utils/protectedServerRoute";
 import { Settings } from "lucide-react";
 import Link from "next/link";
 

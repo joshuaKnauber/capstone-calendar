@@ -1,4 +1,4 @@
-import { api } from "@/utils/api";
+import { api } from "@/lib/utils/api";
 import { useQuery } from "@tanstack/react-query";
 import { calendar_v3 } from "googleapis";
 

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { predict } from "./serverPrediction";
 import { sha256 } from "js-sha256";
-import { redisGet, redisSet } from "@/utils/redis";
+import { redisGet, redisSet } from "@/lib/utils/redis";
 
 type PredictionProps = {
   id: string;
